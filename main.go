@@ -6,10 +6,24 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
+	"fmt"
+
+	_ "github.com/aws/aws-xray-sdk-go/plugins/ecs"
+	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
+const appName = "eks-workshop-x-ray-sample-back"
+
+func init() {
+	xray.Configure(xray.Config{
+		DaemonAddr:     "xray-service.default:2000",
+		LogLevel:       "info",
+		ServiceVersion: "1.2.3",
+	})
+}
+
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/", xray.Handler(xray.NewFixedSegmentNamer(appName), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		res := &response{Message: "42 - The Answer to the Ultimate Question of Life, The Universe, and Everything."}
 
@@ -24,7 +38,7 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		io.WriteString(w, string(out))
 
-	})
+	})))
 	http.ListenAndServe(":8080", nil)
 }
 
