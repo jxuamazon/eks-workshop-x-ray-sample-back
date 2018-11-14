@@ -24,7 +24,7 @@ func init() {
 }
 
 func main() {
-	http.Handle("/", xray.Handler(xray.NewFixedSegmentNamer(appName), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
 		res := &response{Message: "42 - The Answer to the Ultimate Question of Life, The Universe, and Everything.", Random: []int{}}
 
@@ -46,7 +46,7 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		io.WriteString(w, string(out))
 
-	})))
+	})
 	http.ListenAndServe(":8080", nil)
 }
 
