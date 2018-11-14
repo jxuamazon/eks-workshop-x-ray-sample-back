@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"math/rand"
 	"net/http"
 	"time"
 
+	_ "github.com/aws/aws-xray-sdk-go/plugins/ec2"
 	_ "github.com/aws/aws-xray-sdk-go/plugins/ecs"
 	"github.com/aws/aws-xray-sdk-go/xray"
 )
@@ -29,9 +31,16 @@ func main() {
 		count := time.Now().Second()
 		gen := random(res)
 
-		for i := 0; i < count; i++ {
-			gen()
-		}
+		ctx := context.Background()
+		ctx, seg := xray.BeginSegment(ctx, appName + "-gen")
+		defer seg.Close(nil)
+
+		xray.Capture(ctx, "random", func(ctx1 context.Context) (err error) {
+			for i := 0; i < count; i++ {
+				gen()
+			}
+			return
+		})
 
 		out, _ := json.Marshal(res)
 		w.Header().Set("Content-Type", "application/json")
