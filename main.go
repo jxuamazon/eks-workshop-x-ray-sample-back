@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
-const appName = "eks-workshop-x-ray-sample-back"
+const appName = "eks-workshop-x-ray-sample"
 
 func init() {
 	xray.Configure(xray.Config{
