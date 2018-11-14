@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
-	"fmt"
 
 	_ "github.com/aws/aws-xray-sdk-go/plugins/ecs"
 	"github.com/aws/aws-xray-sdk-go/xray"
