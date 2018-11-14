@@ -3,12 +3,12 @@ kind: Service
 metadata:
   name: x-ray-sample-back-k8s
 spec:
-  type: LoadBalancer
   ports:
     - port: 80
       targetPort: 8080
   selector:
     app: x-ray-sample-back-k8s
+    tier: backend
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -24,10 +24,12 @@ spec:
   selector:
     matchLabels:
       app: x-ray-sample-back-k8s
+      tier: backend
   template:
     metadata:
       labels:
         app: x-ray-sample-back-k8s
+        tier: backend
     spec:
       containers:
         - name: x-ray-sample-back-k8s
