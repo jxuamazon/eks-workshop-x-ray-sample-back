@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"math/rand"
@@ -19,32 +18,32 @@ func init() {
 	xray.Configure(xray.Config{
 		DaemonAddr:     "xray-service.default:2000",
 		LogLevel:       "info",
-		ServiceVersion: "1.2.3",
 	})
 }
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
+		ctx, seg := xray.BeginSegment(r.Context(), "x-ray-sample-back-k8s")
+
 		res := &response{Message: "42 - The Answer to the Ultimate Question of Life, The Universe, and Everything.", Random: []int{}}
 
 		count := time.Now().Second()
 		gen := random(res)
 
-		ctx := context.Background()
-		ctx, seg := xray.BeginSegment(ctx, appName + "-gen")
-		defer seg.Close(nil)
+		ctx, subSeg := xray.BeginSubsegment(ctx, "x-ray-sample-back-k8s-gen")
 
-		xray.Capture(ctx, "random", func(ctx1 context.Context) (err error) {
-			for i := 0; i < count; i++ {
-				gen()
-			}
-			return
-		})
+		for i := 0; i < count; i++ {
+			gen()
+		}
+
+		subSeg.Close(nil)
 
 		out, _ := json.Marshal(res)
 		w.Header().Set("Content-Type", "application/json")
 		io.WriteString(w, string(out))
+
+		seg.Close(nil)
 
 	})
 	http.ListenAndServe(":8080", nil)
