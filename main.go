@@ -22,30 +22,29 @@ func init() {
 }
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-		ctx, seg := xray.BeginSegment(r.Context(), "x-ray-sample-back-k8s")
+	http.Handle("/", xray.Handler(xray.NewFixedSegmentNamer(appName), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+
 
 		res := &response{Message: "42 - The Answer to the Ultimate Question of Life, The Universe, and Everything.", Random: []int{}}
 
 		count := time.Now().Second()
 		gen := random(res)
 
-		ctx, subSeg := xray.BeginSubsegment(ctx, "x-ray-sample-back-k8s-gen")
+		_, seg := xray.BeginSubsegment(r.Context(), "x-ray-sample-back-k8s-gen")
 
 		for i := 0; i < count; i++ {
 			gen()
 		}
 
-		subSeg.Close(nil)
+		seg.Close(nil)
 
 		out, _ := json.Marshal(res)
 		w.Header().Set("Content-Type", "application/json")
 		io.WriteString(w, string(out))
 
-		seg.Close(nil)
-
-	})
+	})))
 	http.ListenAndServe(":8080", nil)
 }
 
