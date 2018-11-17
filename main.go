@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
-const appName = "eks-workshop-x-ray-sample"
+const appName = "x-ray-sample-back-k8s"
 
 func init() {
 	xray.Configure(xray.Config{
@@ -25,14 +25,12 @@ func main() {
 
 	http.Handle("/", xray.Handler(xray.NewFixedSegmentNamer(appName), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-
-
 		res := &response{Message: "42 - The Answer to the Ultimate Question of Life, The Universe, and Everything.", Random: []int{}}
 
 		count := time.Now().Second()
 		gen := random(res)
 
-		_, seg := xray.BeginSubsegment(r.Context(), "x-ray-sample-back-k8s-gen")
+		_, seg := xray.BeginSubsegment(r.Context(), appName + "-gen")
 
 		for i := 0; i < count; i++ {
 			gen()
