@@ -38,7 +38,9 @@ func main() {
 
 		seg.Close(nil)
 
-		out, _ := json.Marshal(res)
+		// Beautify the JSON output - only for display
+		out, _ := json.MarshalIndent(res, "", "  ")
+
 		w.Header().Set("Content-Type", "application/json")
 		io.WriteString(w, string(out))
 
